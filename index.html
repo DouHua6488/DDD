@@ -2,525 +2,603 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BMI 健康計算機 | 衛福部國健署標準</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SDGs不塑永續-淨灘</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap');
+    
     * {
       font-family: 'Noto Sans TC', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
     }
-    /* 隱藏數字輸入框上下調節箭頭 */
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+
+    /* 海浪動畫 */
+    @keyframes waveMove {
+      0% { transform: translateX(0) translateZ(0) scaleY(1); }
+      50% { transform: translateX(-25%) translateZ(0) scaleY(0.85); }
+      100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
     }
-    input[type=number] {
-      -moz-appearance: textfield;
+
+    .wave-bg {
+      background: linear-gradient(180deg, #1e3a8a 0%, #0284c7 40%, #38bdf8 75%, #bae6fd 100%);
+    }
+
+    .wave-strip {
+      position: absolute;
+      width: 200%;
+      height: 100%;
+      background-repeat: repeat-x;
+      animation: waveMove 12s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+      opacity: 0.85;
+    }
+
+    .wave-top {
+      animation-duration: 8s;
+      opacity: 0.6;
+    }
+
+    /* 沙灘漸層與質感 */
+    .beach-sand {
+      background: radial-gradient(circle at 50% 10%, #fef3c7 0%, #fde68a 35%, #f59e0b 85%, #d97706 100%);
+      box-shadow: inset 0 15px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    /* 垃圾浮出與消除動畫 */
+    .trash-item {
+      position: absolute;
+      cursor: pointer;
+      transition: transform 0.15s ease-out, filter 0.15s ease;
+      filter: drop-shadow(2px 5px 4px rgba(0, 0, 0, 0.28));
+      will-change: transform, opacity;
+    }
+
+    .trash-item:hover {
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9)) drop-shadow(2px 6px 5px rgba(0, 0, 0, 0.4));
+      transform: scale(1.15) !important;
+    }
+
+    .trash-item:active {
+      transform: scale(0.9) !important;
+    }
+
+    /* 飄字加分動畫 */
+    @keyframes floatUpFade {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(0.8);
+      }
+      50% {
+        transform: translate(-50%, -24px) scale(1.2);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -48px) scale(1);
+      }
+    }
+
+    .score-popup {
+      position: absolute;
+      pointer-events: none;
+      animation: floatUpFade 0.8s ease-out forwards;
+      font-weight: 900;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      z-index: 50;
+    }
+
+    /* 雲朵漂浮效果 */
+    @keyframes floatCloud {
+      from { transform: translateX(-150px); }
+      to { transform: translateX(calc(100vw + 150px)); }
+    }
+    .cloud {
+      animation: floatCloud linear infinite;
     }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col items-center justify-start p-4 sm:p-6 md:p-8">
+<body class="w-screen h-screen overflow-hidden flex flex-col bg-sky-900 select-none">
 
-  <!-- 頂部標題區 -->
-  <header class="w-full max-w-4xl text-center mb-6">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs sm:text-sm font-semibold mb-2 border border-emerald-200">
-      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-      依據衛生福利部國民健康署指標規範
+  <!-- 頂部 Header -->
+  <header class="w-full z-40 bg-white/90 backdrop-blur-md px-4 sm:px-8 py-3 shadow-lg flex flex-wrap justify-between items-center border-b border-sky-100">
+    <!-- 左上角：標題與SDGs說明 -->
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 bg-teal-600 rounded-xl flex items-center justify-center text-white text-xl shadow-md font-black">
+        14
+      </div>
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-800 flex items-center gap-2">
+          SDGs不塑永續-淨灘
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 font-medium hidden sm:block">
+          目標 14：保育海洋生態，減少海洋廢棄物與塑膠污染
+        </p>
+      </div>
     </div>
-    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-      BMI 健康體位計算機
-    </h1>
-    <p class="text-slate-500 text-sm sm:text-base mt-1">
-      即時檢視身體質量指數，掌握理想體態、飲水建議與基礎代謝率
-    </p>
+
+    <!-- 右上角：成績與關卡看板 -->
+    <div class="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-0">
+      <div class="bg-amber-50 border border-amber-200 px-3.5 py-1.5 rounded-xl shadow-sm text-center">
+        <div class="text-[10px] sm:text-xs text-amber-700 font-bold uppercase tracking-wider">目前關卡</div>
+        <div id="levelDisplay" class="text-lg sm:text-xl font-black text-amber-900 leading-none mt-0.5">第 1 關</div>
+      </div>
+      
+      <div class="bg-sky-50 border border-sky-200 px-3.5 py-1.5 rounded-xl shadow-sm text-center">
+        <div class="text-[10px] sm:text-xs text-sky-700 font-bold uppercase tracking-wider">剩餘海廢</div>
+        <div class="text-lg sm:text-xl font-black text-sky-900 leading-none mt-0.5">
+          <span id="remainingTrash">50</span><span class="text-xs font-semibold text-sky-600"> / 50</span>
+        </div>
+      </div>
+
+      <div class="bg-emerald-50 border border-emerald-200 px-4 py-1.5 rounded-xl shadow-sm text-center">
+        <div class="text-[10px] sm:text-xs text-emerald-700 font-bold uppercase tracking-wider">淨灘積分</div>
+        <div id="totalScore" class="text-xl sm:text-2xl font-black text-emerald-600 leading-none mt-0.5">0</div>
+      </div>
+
+      <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition" title="開關音效">
+        <svg id="soundIcon" class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+          <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5-1.23L6.5 6H2v12h4.5l5 4V2zm-2 4.41L7.91 8H4v8h3.91l3.59 2.87V6.41z"/>
+        </svg>
+      </button>
+    </div>
   </header>
 
-  <!-- 主要計算區塊 -->
-  <main class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- 遊戲場景主容器 -->
+  <main id="gameContainer" class="relative flex-1 w-full overflow-hidden flex flex-col">
+    <!-- 天空與雲朵 -->
+    <div class="relative w-full h-[38%] wave-bg overflow-hidden pointer-events-none">
+      <!-- 太陽 -->
+      <div class="absolute right-12 top-6 w-16 h-16 rounded-full bg-amber-100/90 shadow-[0_0_50px_rgba(253,224,71,0.8)]"></div>
 
-    <!-- 左側：輸入表單卡片 -->
-    <section class="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80 flex flex-col justify-between">
-      <div>
-        <!-- 單位切換 Toggle -->
-        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-          <span class="text-sm font-bold text-slate-700">測量單位</span>
-          <div class="bg-slate-100 p-1 rounded-xl flex text-xs font-bold text-slate-600">
-            <button id="btnMetric" onclick="setUnitSystem('metric')" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition">
-              公制 (cm / kg)
-            </button>
-            <button id="btnImperial" onclick="setUnitSystem('imperial')" class="px-3 py-1.5 rounded-lg transition hover:text-slate-900">
-              英制 (ft / lbs)
-            </button>
-          </div>
-        </div>
-
-        <form id="bmiForm" onsubmit="event.preventDefault(); calculateBMI();" class="space-y-4">
-          <!-- 身高輸入 -->
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1.5">身高</label>
-            
-            <!-- 公制身高 -->
-            <div id="metricHeightInput" class="relative">
-              <input type="number" id="heightCm" step="0.1" min="50" max="250" placeholder="例如：172"
-                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-                oninput="autoCalculate()">
-              <span class="absolute right-4 top-3.5 text-xs sm:text-sm font-bold text-slate-400">cm</span>
-            </div>
-
-            <!-- 英制身高 -->
-            <div id="imperialHeightInput" class="grid grid-cols-2 gap-2 hidden">
-              <div class="relative">
-                <input type="number" id="heightFt" min="1" max="8" placeholder="英呎"
-                  class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-3 text-base font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-                  oninput="autoCalculate()">
-                <span class="absolute right-3 top-3.5 text-xs font-bold text-slate-400">ft</span>
-              </div>
-              <div class="relative">
-                <input type="number" id="heightIn" step="0.1" min="0" max="11.9" placeholder="英吋"
-                  class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-3 text-base font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-                  oninput="autoCalculate()">
-                <span class="absolute right-3 top-3.5 text-xs font-bold text-slate-400">in</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 體重輸入 -->
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1.5">體重</label>
-            
-            <!-- 公制體重 -->
-            <div id="metricWeightInput" class="relative">
-              <input type="number" id="weightKg" step="0.1" min="20" max="300" placeholder="例如：65.5"
-                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-                oninput="autoCalculate()">
-              <span class="absolute right-4 top-3.5 text-xs sm:text-sm font-bold text-slate-400">kg</span>
-            </div>
-
-            <!-- 英制體重 -->
-            <div id="imperialWeightInput" class="relative hidden">
-              <input type="number" id="weightLbs" step="0.1" min="40" max="700" placeholder="例如：145"
-                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-base sm:text-lg font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-                oninput="autoCalculate()">
-              <span class="absolute right-4 top-3.5 text-xs sm:text-sm font-bold text-slate-400">lbs</span>
-            </div>
-          </div>
-
-          <!-- 性別與年齡 (進階分析) -->
-          <div class="pt-2">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500">性別與年齡（用於估算基礎代謝率）</span>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-2xl">
-                <button type="button" id="genderMale" onclick="setGender('male')"
-                  class="py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm transition">
-                  男
-                </button>
-                <button type="button" id="genderFemale" onclick="setGender('female')"
-                  class="py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 transition">
-                  女
-                </button>
-              </div>
-              <div class="relative">
-                <input type="number" id="ageInput" min="10" max="120" placeholder="年齡 (選填)"
-                  class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
-                  oninput="autoCalculate()">
-                <span class="absolute right-3 top-2.5 text-xs font-bold text-slate-400">歲</span>
-              </div>
-            </div>
-          </div>
-        </form>
+      <!-- 雲朵 -->
+      <div class="cloud absolute top-6 left-0 opacity-60" style="animation-duration: 48s;">
+        <svg class="w-32 h-16 fill-white" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+      </div>
+      <div class="cloud absolute top-14 left-0 opacity-40" style="animation-duration: 72s; animation-delay: -20s;">
+        <svg class="w-44 h-20 fill-white" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
       </div>
 
-      <!-- 操作按鈕 -->
-      <div class="flex gap-2.5 mt-6">
-        <button type="button" onclick="resetForm()" class="px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm transition">
-          重設
-        </button>
-        <button type="button" onclick="calculateBMI(true)" class="flex-1 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/25 transition">
-          計算並記錄 ➔
-        </button>
+      <!-- 動態浪花層疊 -->
+      <div class="absolute bottom-0 w-full h-14 overflow-hidden pointer-events-none">
+        <svg class="wave-strip wave-top" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M0,0 C150,90 350,-40 500,50 C650,140 900,10 1200,40 L1200,120 L0,120 Z" fill="#7dd3fc"></path>
+        </svg>
+        <svg class="wave-strip" viewBox="0 0 1200 120" preserveAspectRatio="none" style="animation-delay: -3s;">
+          <path d="M0,40 C300,100 600,-20 900,60 C1050,90 1150,20 1200,40 L1200,120 L0,120 Z" fill="#ffffff" fill-opacity="0.8"></path>
+        </svg>
       </div>
-    </section>
+    </div>
 
-    <!-- 右側：結果與健康指標看板 -->
-    <section class="lg:col-span-7 space-y-5">
-      
-      <!-- 主指標卡片 -->
-      <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200/80">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">計算結果</span>
-          <span id="bmiStatusTag" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-            請輸入身高體重
-          </span>
-        </div>
+    <!-- 下半部沙灘區域（約占畫面 62%，50個垃圾散佈於此） -->
+    <div id="beachArea" class="relative w-full h-[62%] beach-sand relative overflow-hidden">
+      <!-- 沙灘自然紋理裝飾物 -->
+      <div class="absolute inset-0 opacity-15 pointer-events-none" style="background-image: radial-gradient(#92400e 0.75px, transparent 0.75px); background-size: 16px 16px;"></div>
 
-        <div class="flex items-baseline gap-3 mb-6">
-          <div id="bmiValueDisplay" class="text-5xl sm:text-6xl font-black text-slate-900 tracking-tight">
-            --
-          </div>
-          <div class="text-slate-400 font-semibold text-sm sm:text-base">kg/m²</div>
-        </div>
+      <!-- 潮水白色浪沫帶 -->
+      <div class="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white/70 via-white/30 to-transparent pointer-events-none"></div>
 
-        <!-- 視覺化漸層色塊標尺與游標 -->
-        <div class="relative mb-2">
-          <!-- 游標指示點 -->
-          <div id="bmiPointer" class="absolute -top-3 -translate-x-1/2 transition-all duration-300 pointer-events-none" style="left: 0%; opacity: 0;">
-            <div class="w-3.5 h-3.5 bg-slate-900 border-2 border-white rounded-full shadow-md mx-auto"></div>
-            <div class="w-0.5 h-2 bg-slate-900 mx-auto"></div>
-          </div>
+      <!-- 垃圾散佈圖層 -->
+      <div id="trashLayer" class="relative w-full h-full"></div>
 
-          <!-- 色彩條 -->
-          <div class="h-3.5 rounded-full overflow-hidden flex w-full shadow-inner">
-            <div class="h-full bg-sky-400" style="width: 25%;" title="過輕 (<18.5)"></div>
-            <div class="h-full bg-emerald-500" style="width: 28%;" title="正常 (18.5-24)"></div>
-            <div class="h-full bg-amber-400" style="width: 15%;" title="過重 (24-27)"></div>
-            <div class="h-full bg-orange-500" style="width: 15%;" title="輕度肥胖 (27-30)"></div>
-            <div class="h-full bg-rose-500" style="width: 17%;" title="中重度肥胖 (≥30)"></div>
-          </div>
-        </div>
-
-        <!-- 區間標籤 -->
-        <div class="flex justify-between text-[11px] font-semibold text-slate-400 px-0.5 mb-6">
-          <span>15</span>
-          <span>18.5 (過輕)</span>
-          <span>24 (正常)</span>
-          <span>27 (過重)</span>
-          <span>30 (輕度)</span>
-          <span>35+</span>
-        </div>
-
-        <!-- 理想體重分析與差異 -->
-        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-sm space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="text-slate-500 font-medium">理想健康體重範圍：</span>
-            <span id="idealWeightText" class="font-bold text-slate-800">--</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-slate-500 font-medium">體重調整建議：</span>
-            <span id="weightDiffText" class="font-bold text-slate-800">--</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 次要生活指標卡片 (飲水與基礎代謝率) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- 每日建議飲水 -->
-        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80">
-          <div class="flex items-center gap-2 mb-2">
-            <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">
-              💧
-            </div>
-            <span class="text-xs font-bold text-slate-600">每日建議水分攝取</span>
-          </div>
-          <div id="waterIntakeDisplay" class="text-2xl font-black text-sky-600">
-            -- <span class="text-xs font-medium text-slate-400">ml / 天</span>
-          </div>
-          <p class="text-[11px] text-slate-400 mt-1">
-            以每公斤體重 30~35 ml 估算標準
-          </p>
-        </div>
-
-        <!-- 基礎代謝率 BMR -->
-        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80">
-          <div class="flex items-center gap-2 mb-2">
-            <div class="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-sm">
-              🔥
-            </div>
-            <span class="text-xs font-bold text-slate-600">基礎代謝率 (BMR)</span>
-          </div>
-          <div id="bmrDisplay" class="text-2xl font-black text-orange-600">
-            -- <span class="text-xs font-medium text-slate-400">kcal / 天</span>
-          </div>
-          <p id="bmrTip" class="text-[11px] text-slate-400 mt-1">
-            填寫年齡與性別以獲得精準估算
-          </p>
-        </div>
-      </div>
-
-      <!-- 歷史紀錄 -->
-      <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <h3 class="text-sm font-bold text-slate-800">測量歷史記錄</h3>
-            <span id="historyCount" class="text-xs bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full">0 筆</span>
-          </div>
-          <button onclick="clearHistory()" class="text-xs text-rose-500 hover:text-rose-600 font-semibold transition">
-            清除紀錄
-          </button>
-        </div>
-
-        <div id="historyList" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-sm">
-          <p class="text-xs text-slate-400 text-center py-4">尚無測量記錄</p>
-        </div>
-      </div>
-
-    </section>
+      <!-- 彈出積分標籤容器 -->
+      <div id="popupLayer" class="absolute inset-0 pointer-events-none z-30"></div>
+    </div>
   </main>
 
-  <!-- 頁尾說明 -->
-  <footer class="w-full max-w-4xl text-center text-xs text-slate-400 mt-8 mb-4">
-    <p>BMI 數值僅作為體態評估之通用參考，運動員、孕婦或高肌肉量族群建議搭配體脂率綜合評估。</p>
-  </footer>
+  <!-- 任務成功 / 關卡完成 Modal -->
+  <div id="successModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center transform scale-95 transition-all duration-300 border-4 border-amber-300">
+      <div class="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">
+        🎉
+      </div>
+      <h2 class="text-3xl font-black text-slate-800 mb-2">任務成功！</h2>
+      <p class="text-slate-600 font-medium mb-4 text-sm">
+        太棒了！您已經清理完這片海灘上的 50 個海洋廢棄物！
+      </p>
+
+      <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 mb-5 text-left">
+        <div class="flex justify-between items-center mb-1 text-sm font-semibold text-slate-600">
+          <span>本關清除垃圾：</span>
+          <span class="text-slate-900 font-bold">50 件</span>
+        </div>
+        <div class="flex justify-between items-center mb-2 text-sm font-semibold text-slate-600">
+          <span>累積總積分：</span>
+          <span id="modalTotalScore" class="text-emerald-600 font-black text-xl">0</span>
+        </div>
+        <div class="mt-3 pt-3 border-t border-amber-200/80">
+          <span class="inline-block text-xs font-bold text-amber-800 bg-amber-200/60 px-2 py-0.5 rounded-md mb-1.5">
+            🌊 SDGs 14 海洋小知識
+          </span>
+          <p id="ecoTip" class="text-xs text-slate-700 leading-relaxed">
+            全球每年有超過 800 萬噸塑膠垃圾流入海洋，這些垃圾分解成「微塑膠」後會進入食物鏈，危害海洋物種與人類健康。從源頭減塑、自備環保餐具是守護海洋最直接的行動！
+          </p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="resetGame(false)" class="flex-1 py-3 px-4 rounded-xl border-2 border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-sm transition">
+          重新挑戰
+        </button>
+        <button onclick="nextLevel()" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-0.5">
+          前往下一關 ➔
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // 狀態設定
-    let currentUnit = 'metric'; // 'metric' or 'imperial'
-    let selectedGender = 'male'; // 'male' or 'female'
-    const STORAGE_KEY = 'bmi_calculator_history';
-
-    // 單位設定切換
-    function setUnitSystem(unit) {
-      currentUnit = unit;
-      const isMetric = unit === 'metric';
-
-      // 按鈕外觀
-      document.getElementById('btnMetric').className = isMetric 
-        ? 'px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition' 
-        : 'px-3 py-1.5 rounded-lg transition hover:text-slate-900';
-      document.getElementById('btnImperial').className = !isMetric 
-        ? 'px-3 py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition' 
-        : 'px-3 py-1.5 rounded-lg transition hover:text-slate-900';
-
-      // 輸入框顯示/隱藏
-      document.getElementById('metricHeightInput').classList.toggle('hidden', !isMetric);
-      document.getElementById('imperialHeightInput').classList.toggle('hidden', isMetric);
-      document.getElementById('metricWeightInput').classList.toggle('hidden', !isMetric);
-      document.getElementById('imperialWeightInput').classList.toggle('hidden', isMetric);
-
-      autoCalculate();
-    }
-
-    // 性別設定
-    function setGender(gender) {
-      selectedGender = gender;
-      const isMale = gender === 'male';
-
-      document.getElementById('genderMale').className = isMale
-        ? 'py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm transition'
-        : 'py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 transition';
-
-      document.getElementById('genderFemale').className = !isMale
-        ? 'py-2 rounded-xl text-xs font-bold bg-white text-slate-800 shadow-sm transition'
-        : 'py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 transition';
-
-      autoCalculate();
-    }
-
-    // 取得當前換算為公制的數值 (cm, kg)
-    function getMetricValues() {
-      let heightCm = 0;
-      let weightKg = 0;
-
-      if (currentUnit === 'metric') {
-        heightCm = parseFloat(document.getElementById('heightCm').value);
-        weightKg = parseFloat(document.getElementById('weightKg').value);
-      } else {
-        const ft = parseFloat(document.getElementById('heightFt').value) || 0;
-        const inches = parseFloat(document.getElementById('heightIn').value) || 0;
-        const totalInches = (ft * 12) + inches;
-        heightCm = totalInches * 2.54;
-
-        const lbs = parseFloat(document.getElementById('weightLbs').value) || 0;
-        weightKg = lbs * 0.45359237;
+    // 垃圾類型定義：名稱、積分、尺寸規格、SVG 向量圖樣
+    const TRASH_TYPES = [
+      {
+        id: 'styrofoam_box',
+        name: '大型保麗龍箱',
+        score: 30,
+        width: 72,
+        height: 60,
+        svg: `<svg viewBox="0 0 80 65" class="w-full h-full">
+                <polygon points="10,25 40,5 75,20 45,40" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+                <polygon points="10,25 45,40 45,60 10,45" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"/>
+                <polygon points="45,40 75,20 75,40 45,60" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+                <line x1="28" y1="32" x2="62" y2="28" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+                <text x="32" y="52" fill="#94a3b8" font-size="8" font-weight="bold">EPS</text>
+              </svg>`
+      },
+      {
+        id: 'paper_box',
+        name: '廢棄餐盒',
+        score: 20,
+        width: 58,
+        height: 50,
+        svg: `<svg viewBox="0 0 65 55" class="w-full h-full">
+                <polygon points="8,15 32,5 58,16 35,28" fill="#fef08a" stroke="#ca8a04" stroke-width="1.8"/>
+                <polygon points="8,15 35,28 30,48 5,35" fill="#fde047" stroke="#ca8a04" stroke-width="1.8"/>
+                <polygon points="35,28 58,16 52,38 30,48" fill="#eab308" stroke="#ca8a04" stroke-width="1.8"/>
+                <circle cx="20" cy="30" r="3" fill="#ef4444" opacity="0.6"/>
+              </svg>`
+      },
+      {
+        id: 'driftwood_slipper',
+        name: '漂流破拖鞋',
+        score: 15,
+        width: 52,
+        height: 44,
+        svg: `<svg viewBox="0 0 60 50" class="w-full h-full">
+                <ellipse cx="30" cy="25" rx="24" ry="13" fill="#3b82f6" stroke="#1d4ed8" stroke-width="2"/>
+                <path d="M18,22 Q24,10 32,18" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+                <path d="M32,18 Q40,12 44,22" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="32" cy="18" r="2.5" fill="#b45309"/>
+              </svg>`
+      },
+      {
+        id: 'drink_cup',
+        name: '外帶手搖杯',
+        score: 15,
+        width: 48,
+        height: 52,
+        svg: `<svg viewBox="0 0 50 56" class="w-full h-full">
+                <polygon points="12,14 38,14 33,52 17,52" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.8" fill-opacity="0.85"/>
+                <ellipse cx="25" cy="14" rx="13" ry="4" fill="#bae6fd" stroke="#0284c7" stroke-width="1.5"/>
+                <line x1="25" y1="2" x2="25" y2="30" stroke="#f43f5e" stroke-width="3" stroke-linecap="round"/>
+                <line x1="16" y1="36" x2="34" y2="36" stroke="#0284c7" stroke-width="1" stroke-dasharray="2,2"/>
+              </svg>`
+      },
+      {
+        id: 'plastic_bottle',
+        name: '塑膠寶特瓶',
+        score: 10,
+        width: 44,
+        height: 48,
+        svg: `<svg viewBox="0 0 45 50" class="w-full h-full">
+                <rect x="18" y="2" width="9" height="5" rx="1.5" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1.2"/>
+                <rect x="13" y="10" width="19" height="34" rx="4" fill="#a5f3fc" stroke="#0891b2" stroke-width="1.8" fill-opacity="0.8"/>
+                <rect x="13" y="22" width="19" height="10" fill="#38bdf8"/>
+                <line x1="15" y1="18" x2="29" y2="18" stroke="#0891b2" stroke-width="1"/>
+                <line x1="15" y1="38" x2="29" y2="38" stroke="#0891b2" stroke-width="1"/>
+              </svg>`
+      },
+      {
+        id: 'plastic_bag',
+        name: '塑膠袋包裝',
+        score: 10,
+        width: 40,
+        height: 38,
+        svg: `<svg viewBox="0 0 45 45" class="w-full h-full">
+                <path d="M10,18 C12,10 16,6 20,6 C22,6 23,12 23,15 C23,12 24,6 26,6 C30,6 34,10 36,18 C40,24 38,38 23,40 C8,38 6,24 10,18 Z" 
+                      fill="#fed7aa" stroke="#ea580c" stroke-width="1.8" fill-opacity="0.75"/>
+                <path d="M16,14 C17,9 19,8 20,8 C21,8 21,12 20,15" fill="none" stroke="#ea580c" stroke-width="1.5"/>
+                <path d="M26,15 C25,12 25,8 26,8 C27,8 29,9 30,14" fill="none" stroke="#ea580c" stroke-width="1.5"/>
+              </svg>`
+      },
+      {
+        id: 'straw_bottle_cap',
+        name: '塑膠吸管與瓶蓋',
+        score: 5,
+        width: 34,
+        height: 34,
+        svg: `<svg viewBox="0 0 35 35" class="w-full h-full">
+                <!-- 瓶蓋 -->
+                <circle cx="15" cy="18" r="9" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/>
+                <circle cx="15" cy="18" r="6" fill="#f87171"/>
+                <!-- 碎吸管 -->
+                <line x1="6" y1="30" x2="30" y2="8" stroke="#eab308" stroke-width="3" stroke-linecap="round"/>
+                <line x1="12" y1="28" x2="26" y2="14" stroke="#ef4444" stroke-width="1.2"/>
+              </svg>`
       }
+    ];
 
-      return { heightCm, weightKg };
-    }
+    // SDGs 海洋生態知識庫
+    const ECO_TIPS = [
+      "全球每年有超過 800 萬噸塑膠垃圾流入海洋，這些垃圾分解成「微塑膠」後會進入食物鏈，危害海洋物種與人類健康。",
+      "保麗龍在自然環境中難以完全分解，會碎裂成微小顆粒被海鳥與魚類誤食，造成假性飽足感而餓死。",
+      "一根塑膠吸管的使用壽命可能只有 20 分鐘，但在海洋環境中卻需要耗費高達 200 年才能完全碎解！",
+      "海洋塑膠垃圾中，超過 70% 屬於食品包裝、外帶杯和塑膠袋等一次性民生廢棄物，源頭減量是唯一的根本之道。",
+      "根據聯合國 SDGs 14 目標，透過減少海洋污染、加強海岸管理與淨灘行動，能實質保護珍貴的珊瑚礁與海洋多樣性！"
+    ];
 
-    // 即時計算
-    function autoCalculate() {
-      calculateBMI(false);
-    }
+    // 遊戲狀態變數
+    const TOTAL_ITEMS = 50;
+    let currentLevel = 1;
+    let score = 0;
+    let remaining = TOTAL_ITEMS;
+    let audioEnabled = true;
+    let audioCtx = null;
 
-    // 主要計算邏輯
-    function calculateBMI(saveToHistory = false) {
-      const { heightCm, weightKg } = getMetricValues();
-
-      if (!heightCm || !weightKg || heightCm <= 0 || weightKg <= 0) {
-        resetOutputs();
-        return;
+    // 音效合成模組 (Web Audio API)
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
       }
-
-      // BMI 計算公式
-      const heightM = heightCm / 100;
-      const bmi = weightKg / (heightM * heightM);
-      const formattedBMI = bmi.toFixed(1);
-
-      // 國健署指標判斷
-      let statusText = '';
-      let tagBg = '';
-      let tagColor = '';
-
-      if (bmi < 18.5) {
-        statusText = '體重過輕';
-        tagBg = 'bg-sky-100';
-        tagColor = 'text-sky-700';
-      } else if (bmi < 24.0) {
-        statusText = '健康正常';
-        tagBg = 'bg-emerald-100';
-        tagColor = 'text-emerald-700';
-      } else if (bmi < 27.0) {
-        statusText = '體位過重';
-        tagBg = 'bg-amber-100';
-        tagColor = 'text-amber-700';
-      } else if (bmi < 30.0) {
-        statusText = '輕度肥胖';
-        tagBg = 'bg-orange-100';
-        tagColor = 'text-orange-700';
-      } else if (bmi < 35.0) {
-        statusText = '中度肥胖';
-        tagBg = 'bg-rose-100';
-        tagColor = 'text-rose-700';
-      } else {
-        statusText = '重度肥胖';
-        tagBg = 'bg-purple-100';
-        tagColor = 'text-purple-700';
-      }
-
-      // 更新畫面主要數值
-      document.getElementById('bmiValueDisplay').innerText = formattedBMI;
-      const statusTag = document.getElementById('bmiStatusTag');
-      statusTag.innerText = statusText;
-      statusTag.className = `px-3 py-1 rounded-full text-xs font-bold ${tagBg} ${tagColor}`;
-
-      // 計算標尺游標位置 (刻度範圍 15 ~ 35 對應 0% ~ 100%)
-      const minScale = 15;
-      const maxScale = 35;
-      let percentage = ((bmi - minScale) / (maxScale - minScale)) * 100;
-      percentage = Math.max(0, Math.min(100, percentage));
-
-      const pointer = document.getElementById('bmiPointer');
-      pointer.style.left = `${percentage}%`;
-      pointer.style.opacity = '1';
-
-      // 理想體重計算 (18.5 ~ 24.0)
-      const minIdealWeight = (18.5 * heightM * heightM).toFixed(1);
-      const maxIdealWeight = (24.0 * heightM * heightM).toFixed(1);
-      document.getElementById('idealWeightText').innerText = `${minIdealWeight} ~ ${maxIdealWeight} kg`;
-
-      // 體重增減建議
-      const diffElem = document.getElementById('weightDiffText');
-      if (weightKg < minIdealWeight) {
-        const needGain = (minIdealWeight - weightKg).toFixed(1);
-        diffElem.innerHTML = `<span class="text-sky-600 font-bold">需增重約 ${needGain} kg</span> 達標準體重`;
-      } else if (weightKg > maxIdealWeight) {
-        const needLose = (weightKg - maxIdealWeight).toFixed(1);
-        diffElem.innerHTML = `<span class="text-rose-600 font-bold">需減重約 ${needLose} kg</span> 達標準體重`;
-      } else {
-        diffElem.innerHTML = `<span class="text-emerald-600 font-bold">維持得很好！</span> 處於正常健康範圍`;
-      }
-
-      // 每日建議飲水量 (30 ~ 35 ml / kg)
-      const minWater = Math.round(weightKg * 30);
-      const maxWater = Math.round(weightKg * 35);
-      document.getElementById('waterIntakeDisplay').innerHTML = `${minWater} ~ ${maxWater} <span class="text-xs font-medium text-slate-400">ml / 天</span>`;
-
-      // BMR 基礎代謝率 (Mifflin-St Jeor 公式)
-      const ageVal = parseInt(document.getElementById('ageInput').value);
-      if (ageVal && ageVal > 0) {
-        let bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * ageVal);
-        bmr += (selectedGender === 'male') ? 5 : -161;
-        document.getElementById('bmrDisplay').innerHTML = `${Math.round(bmr)} <span class="text-xs font-medium text-slate-400">kcal / 天</span>`;
-        document.getElementById('bmrTip').innerText = `已依據 ${selectedGender === 'male' ? '男性' : '女性'}、${ageVal} 歲計算`;
-      } else {
-        document.getElementById('bmrDisplay').innerHTML = `-- <span class="text-xs font-medium text-slate-400">kcal / 天</span>`;
-        document.getElementById('bmrTip').innerText = `填寫年齡與性別以獲得精準估算`;
-      }
-
-      // 儲存至歷史記錄
-      if (saveToHistory) {
-        addHistoryRecord({
-          date: new Date().toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-          height: heightCm.toFixed(1),
-          weight: weightKg.toFixed(1),
-          bmi: formattedBMI,
-          status: statusText,
-          tagColor: tagColor
-        });
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     }
 
-    // 重設產出顯示
-    function resetOutputs() {
-      document.getElementById('bmiValueDisplay').innerText = '--';
-      const statusTag = document.getElementById('bmiStatusTag');
-      statusTag.innerText = '請輸入身高體重';
-      statusTag.className = 'px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600';
+    // 播放撿拾成功音效
+    function playPickupSound(scoreValue) {
+      if (!audioEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
 
-      document.getElementById('bmiPointer').style.opacity = '0';
-      document.getElementById('idealWeightText').innerText = '--';
-      document.getElementById('weightDiffText').innerText = '--';
-      document.getElementById('waterIntakeDisplay').innerHTML = `-- <span class="text-xs font-medium text-slate-400">ml / 天</span>`;
-      document.getElementById('bmrDisplay').innerHTML = `-- <span class="text-xs font-medium text-slate-400">kcal / 天</span>`;
-    }
-
-    // 表單清空
-    function resetForm() {
-      document.getElementById('heightCm').value = '';
-      document.getElementById('weightKg').value = '';
-      document.getElementById('heightFt').value = '';
-      document.getElementById('heightIn').value = '';
-      document.getElementById('weightLbs').value = '';
-      document.getElementById('ageInput').value = '';
-      resetOutputs();
-    }
-
-    // 歷史記錄功能
-    function getStoredHistory() {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        // 依積分高低微調音調頻率
+        const baseFreq = 520 + (scoreValue * 12);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.12);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.19);
       } catch (e) {
-        return [];
+        console.warn("音效播放失敗", e);
       }
     }
 
-    function addHistoryRecord(record) {
-      let history = getStoredHistory();
-      history.unshift(record);
-      if (history.length > 8) history.pop(); // 最多保存 8 筆
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-      renderHistory();
-    }
+    // 關卡過關慶祝音效
+    function playWinSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
 
-    function clearHistory() {
-      localStorage.removeItem(STORAGE_KEY);
-      renderHistory();
-    }
+      try {
+        const notes = [440, 554.37, 659.25, 880]; // A - C# - E - A
+        notes.forEach((freq, idx) => {
+          const now = audioCtx.currentTime + (idx * 0.12);
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
 
-    function renderHistory() {
-      const history = getStoredHistory();
-      const listElem = document.getElementById('historyList');
-      const countElem = document.getElementById('historyCount');
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
 
-      countElem.innerText = `${history.length} 筆`;
+          gain.gain.setValueAtTime(0.28, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
 
-      if (history.length === 0) {
-        listElem.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">尚無測量記錄</p>`;
-        return;
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.35);
+        });
+      } catch (e) {
+        console.warn("勝利音效播放失敗", e);
       }
-
-      listElem.innerHTML = history.map(item => `
-        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-          <div>
-            <div class="font-bold text-slate-700">${item.height} cm / ${item.weight} kg</div>
-            <div class="text-[10px] text-slate-400">${item.date}</div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="font-black text-sm text-slate-800">BMI ${item.bmi}</span>
-            <span class="font-bold ${item.tagColor}">${item.status}</span>
-          </div>
-        </div>
-      `).join('');
     }
 
-    // 初始化載入
+    // 開關聲音
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const soundIcon = document.getElementById('soundIcon');
+      if (audioEnabled) {
+        initAudio();
+        soundIcon.innerHTML = `<path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5-1.23L6.5 6H2v12h4.5l5 4V2zm-2 4.41L7.91 8H4v8h3.91l3.59 2.87V6.41z"/>`;
+      } else {
+        soundIcon.innerHTML = `<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>`;
+      }
+    }
+
+    // 建立 50 個隨機海灘垃圾
+    function spawnTrashItems() {
+      const container = document.getElementById('trashLayer');
+      container.innerHTML = '';
+      remaining = TOTAL_ITEMS;
+      updateHeaderStats();
+
+      const beachRect = container.getBoundingClientRect();
+      const areaWidth = beachRect.width || window.innerWidth;
+      const areaHeight = beachRect.height || (window.innerHeight * 0.6);
+
+      // 安全邊界配置，避免超出沙灘
+      const marginX = 20;
+      const marginTop = 30; // 稍微離浪花邊界保留空間
+      const marginBottom = 20;
+
+      for (let i = 0; i < TOTAL_ITEMS; i++) {
+        // 隨機挑選垃圾類型
+        const typeIndex = Math.floor(Math.random() * TRASH_TYPES.length);
+        const trashData = TRASH_TYPES[typeIndex];
+
+        // 隨機角度（-180deg ~ 180deg）
+        const randomRotation = Math.floor(Math.random() * 360) - 180;
+
+        // 計算安全隨機位置
+        const maxX = Math.max(0, areaWidth - trashData.width - marginX);
+        const minX = marginX;
+        const randomX = Math.floor(Math.random() * (maxX - minX)) + minX;
+
+        const maxY = Math.max(0, areaHeight - trashData.height - marginBottom);
+        const minY = marginTop;
+        const randomY = Math.floor(Math.random() * (maxY - minY)) + minY;
+
+        // 建立元素
+        const el = document.createElement('div');
+        el.className = 'trash-item';
+        el.dataset.score = trashData.score;
+        el.dataset.name = trashData.name;
+        el.style.width = `${trashData.width}px`;
+        el.style.height = `${trashData.height}px`;
+        el.style.left = `${randomX}px`;
+        el.style.top = `${randomY}px`;
+        el.style.transform = `rotate(${randomRotation}deg)`;
+        el.innerHTML = trashData.svg;
+
+        // 點擊事件：撿起垃圾
+        el.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          collectTrash(el, trashData.score, randomX + trashData.width / 2, randomY);
+        });
+
+        container.appendChild(el);
+      }
+    }
+
+    // 撿起垃圾動作處理
+    function collectTrash(element, itemScore, x, y) {
+      if (!element || element.dataset.collected) return;
+      element.dataset.collected = "true";
+
+      playPickupSound(itemScore);
+
+      // 加分與扣除數量
+      score += itemScore;
+      remaining--;
+      updateHeaderStats();
+
+      // 產生浮動積分標籤動畫
+      createFloatingScore(itemScore, x, y);
+
+      // 點選元素縮小淡出動畫
+      element.style.transition = 'transform 0.25s ease-in, opacity 0.25s ease-in';
+      element.style.transform = 'scale(0.1) rotate(90deg)';
+      element.style.opacity = '0';
+      element.style.pointerEvents = 'none';
+
+      setTimeout(() => {
+        if (element.parentNode) {
+          element.remove();
+        }
+      }, 260);
+
+      // 若撿完 50 個，觸發過關結算
+      if (remaining <= 0) {
+        setTimeout(handleStageSuccess, 400);
+      }
+    }
+
+    // 產生浮動「+XX」文字
+    function createFloatingScore(pts, x, y) {
+      const popupLayer = document.getElementById('popupLayer');
+      const popup = document.createElement('div');
+      popup.className = 'score-popup text-base sm:text-xl text-yellow-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+      popup.style.left = `${x}px`;
+      popup.style.top = `${y}px`;
+      popup.innerText = `+${pts}`;
+
+      popupLayer.appendChild(popup);
+      setTimeout(() => popup.remove(), 850);
+    }
+
+    // 更新 Header 分數看板
+    function updateHeaderStats() {
+      document.getElementById('totalScore').innerText = score;
+      document.getElementById('remainingTrash').innerText = remaining;
+      document.getElementById('levelDisplay').innerText = `第 ${currentLevel} 關`;
+    }
+
+    // 關卡成功處理
+    function handleStageSuccess() {
+      playWinSound();
+      document.getElementById('modalTotalScore').innerText = score;
+      
+      // 隨機更換海洋小知識
+      const randomTip = ECO_TIPS[Math.floor(Math.random() * ECO_TIPS.length)];
+      document.getElementById('ecoTip').innerText = randomTip;
+
+      const modal = document.getElementById('successModal');
+      modal.classList.remove('hidden');
+    }
+
+    // 前往下一關
+    function nextLevel() {
+      currentLevel++;
+      document.getElementById('successModal').classList.add('hidden');
+      spawnTrashItems();
+    }
+
+    // 重設遊戲
+    function resetGame(fullReset = true) {
+      if (fullReset) {
+        currentLevel = 1;
+        score = 0;
+      }
+      document.getElementById('successModal').classList.add('hidden');
+      spawnTrashItems();
+    }
+
+    // 視窗大小改變時重新調整（延遲重排防止垃圾掉出邊界）
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        // 若當前還有垃圾，根據新大小重新定位以確保不出邊界
+        const trashItems = document.querySelectorAll('.trash-item:not([data-collected="true"])');
+        if (trashItems.length > 0) {
+          const container = document.getElementById('trashLayer');
+          const areaWidth = container.clientWidth;
+          const areaHeight = container.clientHeight;
+
+          trashItems.forEach(el => {
+            const w = parseFloat(el.style.width) || 40;
+            const h = parseFloat(el.style.height) || 40;
+            const curLeft = parseFloat(el.style.left) || 0;
+            const curTop = parseFloat(el.style.top) || 0;
+
+            if (curLeft + w > areaWidth - 10) {
+              el.style.left = `${Math.max(10, areaWidth - w - 15)}px`;
+            }
+            if (curTop + h > areaHeight - 10) {
+              el.style.top = `${Math.max(30, areaHeight - h - 15)}px`;
+            }
+          });
+        }
+      }, 250);
+    });
+
+    // 頁面加載完成時初始化遊戲
     window.onload = function() {
-      renderHistory();
+      spawnTrashItems();
     };
   </script>
 </body>
